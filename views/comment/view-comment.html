@@ -1,0 +1,31 @@
+
+{% for comment in comments %}
+<article>
+    <header class="row">
+        <h6 class="col-xs-12"> 
+            from 
+            <a href="/p/{{ comment.user_name }}">{{ comment.user_name }}</a>
+            to
+            <a href="/p/{{ comment.parent_user }}">{{ comment.parent_user }}</a>
+        </h6>
+        <!--<span id="scores" class="badge pull-right">0</span>-->
+        <!--<span>{{ post.post_created }}</span>-->
+    </header>
+    <section class="row">
+        <div class="col-xs-12">{{ comment.comment_body }}</div>
+    </section>
+    {% if currentUser %}
+    <section class="comment">
+        <div class="row">
+            <h5 class="col-xs-6 col-md-3">
+                <a class="commentToggle">Comment?</a>
+            </h5>
+        </div>
+        {% include '../comment/create-comment.html' %}
+    </section>
+    {% endif %}
+    <hr />
+</article>
+{% endfor %}
+
+

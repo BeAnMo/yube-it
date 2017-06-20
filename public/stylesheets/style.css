@@ -1,0 +1,99 @@
+
+/* system font usage:
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+}
+*/
+
+
+@font-face {
+  font-family: 'Fira Sans';
+  src: url('../fonts/FiraSans-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'Source Code Pro Medium';
+  src: url('../fonts/SourceCodePro-Medium.ttf');
+}
+
+:root {
+    --bg-color: #FDF6E3;
+    --color-00: #00
+    --color-01: #268BD2;
+    --font-size-base: 1.8rem;
+    --base-03:  #002b36;
+    --base-02:  #073642; 
+    --base-01:  #586e75; 
+    --base-00:  #657b83; 
+    --base-0:   #839496; 
+    --base-1:   #93a1a1;
+    --base-2:   #eee8d5;
+    --base-3:   #fdf6e3;
+    --yellow:   #b58900;
+    --orange:   #cb4b16;
+    --red:      #dc322f;
+    --magenta:  #d33682;
+    --violet:   #6c71c4;
+    --blue:     #268bd2;
+    --cyan:     #2aa198;
+    --green:    #859900;
+}
+
+body {
+    font-family: 'Fira Sans';
+    background-color: var(--base-3);
+    color: var(--base-03);
+    font-size: var(--font-size-base);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Source Code Pro Medium';
+}
+
+a {
+    padding: 0.5rem 0.2rem 0.5rem 0.2rem;
+    color: var(--blue);
+}
+
+a:hover {
+    background-color: var(--base-03);
+    color: var(--cyan);
+    text-decoration: none;
+}
+
+a:active {
+    color: var(--red);
+}
+
+a:visited {
+    background-color: var(--base-02);
+    color: var(--base-0);
+}
+
+td {
+    border: 1px solid var(--green);
+}
+
+fieldset {
+    border: none;
+}
+
+.navbar {
+    border-bottom: 1px solid var(--green);
+}
+
+.main-title {
+    font-size: 1.8rem;
+}
+
+.unstyled {
+    list-style-type: none;
+}
+
+input, textarea {
+    padding: 0.2rem;
+    border-radius: 2px;
+    background-color: var(--base-2);
+    border: 1px solid var(--green);
+    margin-bottom: 0.2rem;
+}

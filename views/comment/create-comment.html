@@ -1,0 +1,25 @@
+{% set title = formatTitle(post.post_title) %}
+<!--
+    <div class="row">
+        <textarea name="body" placeholder="Say something"
+            maxlength="250" class="col-xs-11 col-md-6 commentBody"></textarea>
+    </div>
+    <div class="row">
+        <h5 class="col-xs-12 col-md-3">
+            <a class="addComment">Add Comment</a>
+        </h5>
+    </div>
+-->
+<form action="/comment" method="post" class="commentForm" 
+    data-comment="{{ comment.comment_date }}">
+    <div class="row">
+        <textarea name="body" placeholder="Say something"
+            maxlength="250" class="col-xs-11 col-md-6 commentBody"></textarea>
+    </div>
+    <div class="row">
+        <input type="submit" value="Add Comment" class="addComment" />
+    </div>
+</form>
+
+
+

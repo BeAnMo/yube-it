@@ -1,0 +1,87 @@
+{% extends '../base.html' %}
+
+{% block content %}
+<article>
+    <header class="row">
+        <h4 class="col-xs-12 col-md-8">
+            <em>{{ post.post_title }}</em> by <a href="/p/{{ post.user_name }}">{{ post.user_name }}</a>
+        </h4>
+    </header>
+    <section class="row">
+        <div class="col-xs-12 col-md-8" class="post">{{ post.post_body }}</div>
+    </section>
+    {% if currentUser %}
+    <section class="comment">
+        <div class="row">
+            <h5 class="col-xs-12 col-md-3">
+                <a class="commentToggle">Comment?</a>
+            </h5>
+        </div>
+     
+        {% include '../comment/create-comment.html' %}
+    
+    </section>
+    {% endif %}
+</article>
+
+<hr />
+
+<section>
+{% include '../comment/view-comment.html' %}
+</section>
+
+<script>
+    // .addComment = PUT to server
+    // .toggleComment = 'Comment?' 
+    // .commentForm = form for adding comments
+    $(document).ready(function(){
+        var comments = $('.comment');
+        var commentBodys = $('.commentBody');
+        var commentForms = $('.commentForm');
+        var commentToggles = $('.commentToggle');
+        var submits = $('.addComment');
+        
+        commentForms.hide();
+        
+        comments.on('click', '.commentToggle', function(event){
+            var form = $(this).parent().parent().next();
+            form.toggle();
+        });
+    
+        comments.on('submit', '.commentForm', function(event){
+            event.preventDefault();
+            var created = {{ post.post_created }};
+            var form = $(this).find('.commentForm');
+            var body = $(this).find('.commentBody');
+            var parent = $(this).data();
+
+            if(parent.comment === ''){ 
+                parent = created; 
+            } else {
+                parent = parent.comment;
+            }
+
+            return post(body, parent, form);
+        });
+    
+        function post(body, parent, form){
+            $.ajax(window.location.pathname + '/comment', {
+                data: {
+                    parent: parent,
+                    body: body.val()
+                },
+                method: 'POST',
+                error: function(xhr, status, err){
+                    console.log(err);
+                },
+                success: function(data, status, xhr){
+                    body.val('');
+                    form.hide();
+                    window.location.reload(true);
+                    // add single comment to page
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
