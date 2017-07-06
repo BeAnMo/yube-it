@@ -14,7 +14,7 @@ router.get('/', (req, res) => {
 
 // POST log in user
 router.post('/', passport.authenticate('login', {
-    successRedirect: '/',
+    successRedirect: '/yube-it',
     failureRedirect: route,
     failureFlash: true
 }));

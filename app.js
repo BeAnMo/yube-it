@@ -11,11 +11,8 @@ const express       = require('express'),
       nunjucks      = require('nunjucks'),
       setupPassport = require('./passport-conf');
 
-// not needed, required files loaded with app.use(require('./routes'))
-//const routes = require('./routes');
-//const users = require('./routes/users');
-
 const app = express();
+
 
 // initialize DB
 db.initialize();
@@ -48,9 +45,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize());
 app.use(passport.session());
 
-//app.use('/', index);
-//app.use('/users', users);
-// all routes come through /routes/index.js
 app.use(require('./routes'));
 
 // catch 404 and forward to error handler

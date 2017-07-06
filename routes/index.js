@@ -3,6 +3,8 @@ const express = require('express'),
       Comment = require('../models/comment'),
       Utility = require('../utils');
 
+// to work with Apache reverse proxy, root route '/' must be '/yube-it'
+
 // check out url.resolve()    
 const router = express.Router();
 // String -> String
@@ -11,10 +13,10 @@ const TIMER = (item) => { return 'TIMER - ' + item; };
 
 // router junction
 // router.user(URI-of-specific-route, require(route-module))
-router.use('/signup', require('./signup'));
-router.use('/login', require('./login'));
-router.use('/post', require('./post'));
-router.use('/p', require('./user'));
+router.use('/yube-it/signup', require('./signup'));
+router.use('/yube-it/login', require('./login'));
+router.use('/yube-it/post', require('./post'));
+router.use('/yube-it/p', require('./user'));
 
 // sets variables for templates
 router.use((req, res, next) => {
@@ -25,7 +27,7 @@ router.use((req, res, next) => {
 });
 
 // GET home page
-router.get('/', function(req, res, next) {
+router.get('/yube-it', function(req, res, next) {
     console.time(TIMER('GET /'));
     const query = 'SELECT * FROM posts ORDER BY post_created DESC';
     DB.database.all(query, (err, rows) => {
@@ -44,13 +46,13 @@ router.get('/', function(req, res, next) {
 });
 
 // GET log out currentUser
-router.get('/logout', function(req, res, next) {
+router.get('/yube-it/logout', function(req, res, next) {
     req.logout();
-    res.redirect('/');
+    res.redirect('/yube-it');
 });
 
 // GET specific Post page
-router.get('/:user_id/:date/:title', (req, res, next) => {
+router.get('/yube-it/:user_id/:date/:title', (req, res, next) => {
     const postInfo = { formatTitle: Utility.formatTitle };
     
     DB.postAndComments(req.params.user_id, req.params.date, postInfo, () => {
@@ -79,9 +81,8 @@ router.put('/:user_id/:date/:title', Utility.ensureAuthenticated, (req, res, nex
 
 
 // POST new comment
-const commentURI = '/:user_id/:date/:title';
-router.post('/:user_id/:date/:title/comment', Utility.ensureAuthenticated, (req, res, next) => {
-    const redirect = '/' + req.params.user_id + '/' + req.params.date + '/' +
+router.post('/yube-it/:user_id/:date/:title/comment', Utility.ensureAuthenticated, (req, res, next) => {
+    const redirect = '/yube-it/' + req.params.user_id + '/' + req.params.date + '/' +
         req.params.title;
     const postInfo = {};
     

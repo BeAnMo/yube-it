@@ -36,7 +36,7 @@ router.post('/', passport.authenticate('signup'), (req, res) => {
     // can't do failure redirect, only ends in 401 - unauthorized
     
     // successful redirect
-    res.redirect('/');
+    res.redirect('/yube-it');
 });
 
 

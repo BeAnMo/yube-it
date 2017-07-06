@@ -15,7 +15,7 @@ router.post('/', Utility.ensureAuthenticated, (req, res, next) => {
     let newPost = new Post(req.body.title, req.body.body, new Date());
     newPost.setID(req.user.user_id);
     newPost.save();
-    res.redirect('/');
+    res.redirect('/yube-it');
 });
 
 

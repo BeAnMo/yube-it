@@ -26,7 +26,7 @@
     {% for post in user.posts %}
         <li class="row">
             <div class="col-xs-6 col-md-3 col-md-offset-3">
-                <a href="/{{ user.user_ref }}/{{ post.post_created }}/{{ user.utils.formatTitle(post.post_title) }}">
+                <a href="/yube-it/{{ user.user_ref }}/{{ post.post_created }}/{{ user.utils.formatTitle(post.post_title) }}">
                     {{ post.post_title }}
                 </a>
             </div>
