@@ -71,7 +71,7 @@ UserExt.prototype.resetBase = function(amount){ return this.base = amount; };
 UserExt.prototype.makeEntry = function(){
   var userInsert = {
     query: 'INSERT INTO users_exts (user_ref, user_email, ' +
-        'user_signedup, user_more, user_less, user_base) ' +
+        'user_signedup, user_more, user_less, user_score) ' +
         'VALUES (?, ?, ?, ?, ?, ?)',
     params: [
       this.id,
@@ -79,7 +79,7 @@ UserExt.prototype.makeEntry = function(){
       this.signup.toString(),
       this.more,
       this.less,
-      this.base
+      this.score
     ]
   };
 

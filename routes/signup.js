@@ -29,7 +29,7 @@ router.post('/', passport.authenticate('signup'), (req, res) => {
             }
             
             newUser.setID(row.user_id);
-            console.log(newUser);
+            //console.log(newUser);
             newUser.save();
         });
     });
