@@ -1,4 +1,6 @@
-const DB   = require('../db');
+const DB         = require('../db'),
+      Select     = require('../db/commands/select-from'),
+      InsertInto = require('../db/commands/insert-into');
       
 /*
 - User from UserExt:
@@ -38,9 +40,7 @@ UserExt.prototype.getBase = function(){ return this.base; };
 // String, [Object -> ???] -> Void
 // retrieves all user extension info from the DB, given the user name
 UserExt.prototype.getAll_DB = function(username, done){
-    const q = 'SELECT * FROM users WHERE user_ref = ' +
-        '(SELECT user_id FROM users WHERE user_name = ?)';
-    DB.database.get(q, username, (err, row) => {
+    DB.database.get(Select.allUserExtsWhere, username, (err, row) => {
         if(err) throw new Error('DB ERR:', err);
         
         done(row);
@@ -70,9 +70,7 @@ UserExt.prototype.resetBase = function(amount){ return this.base = amount; };
 // consumes a User and returns an object for DB insertions
 UserExt.prototype.makeEntry = function(){
   var userInsert = {
-    query: 'INSERT INTO users_exts (user_ref, user_email, ' +
-        'user_signedup, user_more, user_less, user_score) ' +
-        'VALUES (?, ?, ?, ?, ?, ?)',
+    query: InsertInto.userExts,
     params: [
       this.id,
       this.email,

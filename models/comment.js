@@ -1,5 +1,6 @@
 /* Comment Model */
-const DB = require('../db');
+const DB         = require('../db'),
+      InsertInto = require('../db/commands/insert-into');
 
 /* a Comment is:
 - author:     User.username
@@ -73,12 +74,13 @@ Comment.prototype.setLessScore = function(amount){
 // consumes a User and returns an object for DB insertions
 Comment.prototype.makeEntry = function(){
   var postInsert = {
-    query: 'INSERT INTO comments ( ' + 
+    /*query: 'INSERT INTO comments ( ' + 
         'comment_user, comment_body, ' +
         'comment_date, comment_more, ' + 
         'comment_less, comment_score, ' + 
         'comment_post, comment_parent) ' +
-        'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',*/
+    query: InsertInto.comments,
     params: [
       this.id,
       this.body,

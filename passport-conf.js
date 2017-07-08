@@ -1,6 +1,7 @@
 const passport      = require('passport'),
       LocalStrategy = require('passport-local').Strategy,
       DB            = require('./db'),
+      SELECT        = require('./db/commands/select-from'),
       User          = require('./models/user');
       
 /* using passport:
@@ -25,10 +26,8 @@ const passport      = require('passport'),
       
 passport.use('login', new LocalStrategy((username, password, done) => {
     console.log('login:', username);
-    const passQ = 'SELECT * FROM users WHERE user_name=?';
-    DB.database.get(passQ, username, (err, row) => {
-        if(err) return done(err);
-        
+    
+    DB.database.get(SELECT.allFromUser, username, DB.result('passport login', (row) => {
         // if user doesn't exist
         if(!row) return done(null, false, { message: 'Not a user!' });
         
@@ -47,15 +46,12 @@ passport.use('login', new LocalStrategy((username, password, done) => {
                 return done(null, false, { message: 'Invalid password.' });
             } 
         });
-    });
+    }));
 }));
 
 passport.use('signup', new LocalStrategy((username, password, done) => {
     console.log('in signup:', username);
-    const passQ = 'SELECT * FROM users WHERE user_name=?';
-    DB.database.get(passQ, username, (err, row) => {
-        if(err) done(err);
-
+    DB.database.get(SELECT.allFromUser, username, DB.result('passport signup', (row) => {
         // if user exists
         if(row !== undefined) return done(null, false, { message: 'User Exists!' });
         
@@ -66,7 +62,7 @@ passport.use('signup', new LocalStrategy((username, password, done) => {
         newUser.hashPassAndInsert();
         
         return done(null, newUser.username);  
-    });
+    }));
 }));
 
       
@@ -78,13 +74,12 @@ module.exports = function(){
     
     passport.deserializeUser((name, done) => {
         console.log('deserialize:', name);
-        const query = 'SELECT user_id, user_name FROM users WHERE user_name=?';
-        DB.database.get(query, name, (err, row) => {
-            if(err) return done(err);
+        DB.database.get(SELECT.userNameAndIDFromUsers, name, 
+                        DB.result('deserialize user:', (row) => {
         
             if(!row) return done(null, false);
             
             return done(null, row);
-        });
+        }));
     });
 }

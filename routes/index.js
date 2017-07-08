@@ -1,5 +1,6 @@
 const express = require('express'),
       DB      = require('../db'),
+      Select  = require('../db/commands/select-from'),
       Comment = require('../models/comment'),
       Utility = require('../utils');
 
@@ -29,10 +30,8 @@ router.use((req, res, next) => {
 // GET home page
 router.get('/yube-it', function(req, res, next) {
     console.time(TIMER('GET /'));
-    const query = 'SELECT * FROM posts ORDER BY post_created DESC';
-    DB.database.all(query, (err, rows) => {
-        if(err) return next(err);
-
+    //const query = 'SELECT * FROM posts ORDER BY post_created DESC';
+    DB.database.all(Select.allPostsDESC, DB.result('GET /yube-it', (rows) => {
         let postsInfo = {
             posts: rows,
             utils: {
@@ -42,7 +41,7 @@ router.get('/yube-it', function(req, res, next) {
         }
         console.timeEnd(TIMER('GET /'));
         res.render('index.html', postsInfo);
-    });
+    }, next));
 });
 
 // GET log out currentUser
@@ -82,6 +81,7 @@ router.put('/:user_id/:date/:title', Utility.ensureAuthenticated, (req, res, nex
 
 // POST new comment
 router.post('/yube-it/:user_id/:date/:title/comment', Utility.ensureAuthenticated, (req, res, next) => {
+    // this is gross
     const redirect = '/yube-it/' + req.params.user_id + '/' + req.params.date + '/' +
         req.params.title;
     const postInfo = {};

@@ -1,6 +1,7 @@
 /* Post Model */
-const DB      = require('../db'),
-      Utility = require('../utils');
+const DB         = require('../db'),
+      InsertInto = require('../db/commands/insert-into'),
+      Utility    = require('../utils');
 
 /* a Post is:
 // id should be 'user_ref' not 'post_id'
@@ -73,9 +74,10 @@ Post.prototype.setLessScore = function(amount){
 // consumes a User and returns an object for DB insertions
 Post.prototype.makeEntry = function(){
   var postInsert = {
-    query: 'INSERT INTO posts (post_title, post_body, ' +
+    /*query: 'INSERT INTO posts (post_title, post_body, ' +
         'post_created, post_more, post_less, post_score, post_id) ' +
-        'VALUES (?, ?, ?, ?, ?, ?, ?)',
+        'VALUES (?, ?, ?, ?, ?, ?, ?)',*/
+    query: InsertInto.posts,
     params: [
       this.title,
       this.body,

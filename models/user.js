@@ -1,6 +1,8 @@
 /* User Model */
-const bcrypt = require('bcrypt-nodejs'),
-      DB     = require('../db');
+const bcrypt     = require('bcrypt-nodejs'),
+      DB         = require('../db'),
+      Select     = require('../db/commands/select-from'),
+      InsertInto = require('../db/commands/insert-into');
 
 
 /* a User is:
@@ -53,8 +55,7 @@ User.prototype.hashPassAndInsert = function(callback){
 // String, Function -> Void
 // checks to ensure guessed password matches saved pass
 User.prototype.checkPassword = function(guess, callback){
-    const query = 'SELECT user_pass FROM users WHERE user_name=?';
-    DB.database.get(query, this.username, (err, row) => {
+    DB.database.get(Select.passwordFromUsers, this.username, (err, row) => {
         if(err) return new Error(err);
         
         bcrypt.compare(guess, row.user_pass, (err, isMatch) => {
@@ -67,9 +68,7 @@ User.prototype.checkPassword = function(guess, callback){
 // consumes a User and returns an object for DB insertions
 User.prototype.makeEntry = function(){
   var userInsert = {
-    query: 'INSERT INTO users ' +
-           '(user_name, user_pass) ' +
-           'VALUES (?, ?)',
+    query: InsertInto.users,
     params: [
       this.username,
       this.password,
@@ -90,9 +89,8 @@ User.prototype.save = function(){
 // [String Function -> Object] -> Object
 // searches the DB for a specific user
 User.prototype.nameExists = function(callback){
-    const query = 'SELECT user_name FROM users WHERE user_name=?';
-    return DB.database.get(query, this.username, (err, row) => {
-        if(err) throw new Error(err);
+    return DB.database.get(Select.userNameFromUsers, this.username, (err, row) => {
+        if(err) return console.error(err);
         
         return callback(row);
     });
@@ -102,7 +100,9 @@ User.prototype.nameExists = function(callback){
 // searches the DB for the user's password
 User.prototype.readPass = function(callback){
     const query = 'SELECT user_pass FROM users WHERE user_name=?';
-    return DB.database.get(query, this.username, (err, row) => {
+    return DB.database.get(Select.passwordFromUsers, this.username, (err, row) => {
+        if(err) return console.error(err);
+        
         return callback(row);
     });
 }

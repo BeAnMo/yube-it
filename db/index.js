@@ -1,8 +1,37 @@
-const sqlite3  = require('sqlite3').verbose();
-const path     = require('path');
+const sqlite3     = require('sqlite3').verbose(),
+      path        = require('path'),
+      Select      = require('./commands/select-from'),
+      LeftJoin    = require('./commands/left-join'),
+      CreateTable = require('./commands/create-table');
 
 const dbPath   = path.resolve('./test.db', '../test.db');
 const db       = new sqlite3.Database(dbPath);
+
+
+/*-------------------------------------------------------*/
+/*------- Helpers ------ --------------------------------*/
+// String, Symbol or Function -> [Error, Object -> Error or [Object -> X]]
+// takes in a string denoting error location and a function or function name,
+// handles error callbacks with either Error only parameter or an
+// Error & Object returned from the DB
+// the error handler function is present to prevent page hanging when an 
+// operation throws an error
+function result(location, callback, errHandler){
+    return function(err, obj){
+        if(err) {
+            if(errHandler){
+                console.error(location + ': ' + err);
+                errHandler(err);
+            } else {
+                return console.error(location + ': ' + err);
+            }
+        } else if(callback){
+            return callback(obj);
+        } else {
+            return;
+        }
+    }
+}
 
 
 /*-------------------------------------------------------*/
@@ -10,91 +39,7 @@ const db       = new sqlite3.Database(dbPath);
 /* turn on foreign keys:
 PRAGMA foreign_keys = ON; */
 
-// void -> void
-function createPostTable(){
-  // creates a table of posts
-  // created if table does not exist on server launch
-  const q = 'CREATE TABLE IF NOT EXISTS posts ' +
-        '(post_title TEXT, ' +
-        'post_body TEXT, ' +
-        'post_created INTEGER, ' + // make PRIMARY KEY
-        'post_more INTEGER, ' +
-        'post_less INTEGER, ' +
-        'post_score INTEGER, ' +
-        'post_id INTEGER, ' +
-        'FOREIGN KEY (post_id) REFERENCES users(user_id))';
-  
-  return db.run(q, (err) => {
-        if(err) throw new Error(err);
-        
-        console.log('DB: posts table created');
-    });
-}
-
-// void -> void
-function createCommentTable(){
-    // creates a table of posts
-    // created if table does not exist on server launch
-    const q = 'CREATE TABLE IF NOT EXISTS comments ' +
-        '(comment_body TEXT, ' +
-        'comment_date INTEGER, ' + // comment post
-        'comment_score INTEGER, ' +
-        'comment_more INTEGER, ' +
-        'comment_less INTEGER, ' +
-        'comment_user INTEGER, ' + // users.user_id
-        'comment_post INTEGER, ' + // original post
-        'comment_parent INTEGER, ' + // parent comment or original post
-        'FOREIGN KEY (comment_user) REFERENCES users(user_id))';
-         
-        return db.run(q, (err) => {
-            if(err) throw new Error(err);
-            
-            return console.log('DB: comments table created')
-        });
-}
-
-/*
-CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT,  
-    username TEXT,  
-    password TEXT, // encrypt 
-    email TEXT
-);
-*/
-// void -> void
-function createUserTable(){
-  // creates a table of users
-  // created if table does not exist on server launch
-  // maybe have fields for user agent stuff?
-  // ex: OS, browser, hardware
-  const q = 'CREATE TABLE IF NOT EXISTS users ' +
-        '(user_id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
-        'user_name TEXT, user_pass TEXT)';
-  
-  return db.run(q, (err) => {
-        if(err) throw new Error(err);
-        
-        return console.log('DB: users table created');
-    });
-}
-
-// void -> void
-function createUserExtTable(){
-  // creates a table of users
-  // created if table does not exist on server launch
-  // maybe have fields for user agent stuff?
-  // ex: OS, browser, hardware
-  const q = 'CREATE TABLE IF NOT EXISTS users_exts ' +
-        '(user_email TEXT, user_signedup TEXT, user_more REAL, ' +
-        'user_less REAL, user_score REAL, user_ref INTEGER, ' + 
-        'FOREIGN KEY(user_ref) REFERENCES users(user_id))';
-  
-  return db.run(q, (err) => {
-        if(err) throw new Error(err);
-        
-        return console.log('DB: users_exts table created');
-    });
-}
-
+// abstracted to ./commands/create-table.js
 
 /*-------------------------------------------------------*/
 /*------- DB Checking -----------------------------------*/
@@ -105,6 +50,7 @@ function isTablePresent(table, callback){
           'WHERE type="table" AND name=?', table,
           callback);
 }
+
 
 // String, Function -> Void
 // drops given table
@@ -120,27 +66,28 @@ function dropTable(table, callback){
     return callback();
 }
 
+
 // [String Function -> Object] -> Object
 // searches the DB for a specific user
 function userExists(user, callback){
-    const query = 'SELECT user_name FROM users WHERE user_name=?';
-    return db.get(query, user, (err, row) => {
+    return db.get(Select.userNameFromUsers, user, (err, row) => {
         if(err) throw new Error(err);
     
         return callback(row);
     });
 }
 
+
 // [String Function -> Object] -> Object
 // searches the DB for all of user's info
 function readUser(user, callback){
-    const query = 'SELECT * FROM users WHERE user_name=?';
-    return db.get(query, user, (err, row) => {
+    return db.get(Select.allFromUser, user, (err, row) => {
         if(err) throw new Error(err);
         
         return callback(row);
     });
 }
+
 
 /*-------------------------------------------------------*/
 /*------- Table Updates & Insertions --------------------*/
@@ -154,42 +101,34 @@ function createDBstatement(obj){
   return statement.finalize();
 }
 
+
 // Void -> Void
 // initializes DB
 function initialize(){
     return db.serialize(function(){
-        db.run('PRAGMA foreign_keys = ON');
-        // check if db exists? it should when server goes live
-        // need to check if user table exists:
-        //   SELECT name FROM sqlite_master WHERE
-        //   type='table' AND name='users';
-        createUserTable();
-        createUserExtTable();
-        createPostTable();
-        createCommentTable();
+        console.log('Creating Tables, if not already created');
+        db.run('PRAGMA foreign_keys = ON')
+          .run(CreateTable.users,     result('createUserTable'))
+          .run(CreateTable.usersExts, result('createUserExtTable'))
+          .run(CreateTable.posts,     result('createPostTable'))
+          .run(CreateTable.comments,  result('createCommentTable'));
     });
 }
 
+
+//!!! this is a text book example of N+1 SELECT problem
+//!!! refactor !!!
 // String, String, Object -> Void
 // retrieves the post info and all comment info associated with it
 function postAndComments(user_id, post_date, store, callback){
     console.time('Post & Comments retrieval');
-    // retrieves info for the original post
-    const userQ = 'SELECT user_name, post_title, post_body, post_created, ' +
-        'post_id FROM posts LEFT JOIN users ON posts.post_id = users.user_id ' +
-        'WHERE post_id = ? AND post_created = ?';
-    // retrieves info for the comments
-    const commentQ = 'SELECT user_name, comment_body, comment_post, comment_user, ' + 
-        'comment_date, comment_parent ' +
-        'FROM comments LEFT JOIN users ON comments.comment_user = users.user_id ' + 
-        'WHERE comment_post = ?';
     
-    db.get(userQ, [user_id, post_date], (err, row) => {
+    db.get(LeftJoin.usersOnPosts, [user_id, post_date], (err, row) => {
         if(err) return next(err);
             
         store.post = row;
         
-        db.all(commentQ, post_date, (err, rows) => {
+        db.all(LeftJoin.usersOnComments, post_date, (err, rows) => {
             if(err) return next(err);
 
             store.comments = rows;
@@ -197,12 +136,7 @@ function postAndComments(user_id, post_date, store, callback){
             let parents = store.comments;
             
             db.serialize(() => {
-                // retrieve user_name of the parent comment
-                const statementQ = 'SELECT user_name, comment_date FROM ' +
-                    'comments LEFT JOIN users ON ' + 
-                    'comments.comment_user = users.user_id ' + 
-                    'WHERE comment_date = ?';
-                let statement = db.prepare(statementQ);
+                let statement = db.prepare(LeftJoin.oneUserOnOneComment);
                 
                 db.run('BEGIN');
                 
@@ -220,7 +154,7 @@ function postAndComments(user_id, post_date, store, callback){
                 }
                 
                 db.run('COMMIT');
-                
+                console.log(parents);
                 statement.finalize(() => {
                     console.timeEnd('Post & Comments retrieval');
                     return callback();
@@ -231,15 +165,15 @@ function postAndComments(user_id, post_date, store, callback){
 }
 
 
-
 module.exports = {
     database:        db,
     path:            dbPath,
     tablePresent:    isTablePresent,
-    commentsTable:   createCommentTable,
+    //commentsTable:   createCommentTable,
     insert:          createDBstatement,
     initialize:      initialize,
     userExists:      userExists,
     readUser:        readUser,
-    postAndComments: postAndComments
+    postAndComments: postAndComments,
+    result:          result
 }

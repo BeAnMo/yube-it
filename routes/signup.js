@@ -4,7 +4,8 @@ const express       = require('express'),
       LocalStrategy = require('passport-local').Strategy,
       User          = require('../models/user'),
       UserExt       = require('../models/user-extended'),
-      DB            = require('../db');
+      DB            = require('../db'),
+      SELECT        = require('../db/commands/select-from');
 
 const router = express.Router();
 const route  = '/signup';
@@ -20,18 +21,17 @@ router.post('/', passport.authenticate('signup'), (req, res) => {
     let newUser = new UserExt(null, req.body.email, new Date());
     
     DB.database.serialize(() => {
-        const query = 'SELECT user_id FROM users WHERE user_name=?';
-        DB.database.get(query, req.body.username, (err, row) => {
-            if(err) throw new Error(err);
-
+        DB.database.get(SELECT.userIDFromUsers, 
+                        req.body.username, 
+                        DB.result('POST /yube-it/signup', (row) => {
+                        
             if(!row || row.user_id === null) {
                 return new Error('user does not exist in DB');
             }
             
             newUser.setID(row.user_id);
-            //console.log(newUser);
             newUser.save();
-        });
+        }));
     });
     // can't do failure redirect, only ends in 401 - unauthorized
     

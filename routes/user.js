@@ -1,6 +1,7 @@
 /* Users Pages */
 const express = require('express'),
       DB      = require('../db'),
+      SELECT  = require('../db/commands/select-from'),
       User    = require('../models/user'),
       UserExt = require('../models/user-extended'),
       Utility = require('../utils');
@@ -11,11 +12,39 @@ const route  = './p';
 
 // GET info for specific username
 router.get('/:username', (req, res, next) => {
-    const query = 'SELECT users_exts.* FROM users_exts ' + 
-        'WHERE user_ref = (SELECT user_id FROM users WHERE user_name = ?)';
     let username = req.params.username;
+    
+    // why does this not work?
+    /*DB.database.get(SELECT.allUserExtsWhere, username, DB.result('GET /:username', (row) => {
+        if(!row){
+            //throw new Error('DB ERROR: row does not exist');
+            return next('error.html');
+        } else {
+            var userInfo = {
+                user_name: username
+            };
+            
+            Object.keys(row).forEach((key) => { userInfo[key] = row[key]; });
+            
+            DB.database.all(SELECT.titleANDCreatedFromPosts, 
+                        userInfo.user_ref, 
+                        DB.result('GET /:username - title & date',
+                        (rows) => {
+                        
+                userInfo.posts = rows;
+                userInfo.user_signedup = userInfo.user_signedup;
+                userInfo.utils = {
+                    formatDate: Utility.formatDate,
+                    formatTitle: Utility.formatTitle
+                };
+                
+                return res.render('user.html', { user: userInfo });     
+            }));
         
-    DB.database.get(query, username, (err, row) => {
+        }
+    }, next));    */
+        
+    DB.database.get(SELECT.allUserExtsWhere, username, (err, row) => {
         if(err) {
             //throw new Error('DB ERROR:', err);
             return next('error.html');
