@@ -9,24 +9,24 @@ const db       = new sqlite3.Database(dbPath);
 
 
 /*-------------------------------------------------------*/
-/*------- Helpers ------ --------------------------------*/
-// String, Symbol or Function -> [Error, Object -> Error or [Object -> X]]
-// takes in a string denoting error location and a function or function name,
-// handles error callbacks with either Error only parameter or an
-// Error & Object returned from the DB
-// the error handler function is present to prevent page hanging when an 
-// operation throws an error
-function result(location, callback, errHandler){
+/*------- Helpers ---------------------------------------*/
+// String, Function, Function -> [Error, Object -> Error or [Object -> X]]
+// takes in a string denoting the error location and can optionally take
+// a success callback and failure callback,
+// if no error is present, success callback is called,
+// if their is a failure callback, it is called to prevent the operation from
+// hanging
+function result(location, success, failure){
     return function(err, obj){
         if(err) {
             if(errHandler){
                 console.error(location + ': ' + err);
-                errHandler(err);
+                return failure(err);
             } else {
                 return console.error(location + ': ' + err);
             }
-        } else if(callback){
-            return callback(obj);
+        } else if(success){
+            return success(obj);
         } else {
             return;
         }
